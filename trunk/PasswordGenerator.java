@@ -1,7 +1,6 @@
-/*
- * java PasswordGenerator [# of characters] [# of passwords] [seed #]
-
-Your reference file name is just "reference". 
+/**
+ * @author Chris Cunningham
+ * @author Anh Khoi Dang
  */
 
 import java.util.*;
@@ -47,12 +46,12 @@ public class PasswordGenerator
 			{
 				pwCount--;
 				int currentPWLength = pwLength;
-				String result = firstChar();
+				String result = nextChar(starters);
 				currentPWLength--;
 				while(currentPWLength != 0)
 				{
 					char prevChar = result.charAt(result.length()-1);
-					result += nextChar(prevChar);
+					result += nextChar(followers[prevChar-'a']);
 					currentPWLength--;
 				}
 				results[pwCount] = result; 
@@ -64,43 +63,17 @@ public class PasswordGenerator
 		}
 	}
 	
-	private static String firstChar() 
-	{
-		String result = "";
-		int sumStarters = starters[26];
-		
-		//building starterRatios - containing ratios of starters[i]/sumStarters 
-		Rational[] starterRatios = new Rational[26];
-		for(int i = 0; i < starterRatios.length; i++)
-			starterRatios[i] = new Rational(starters[i], sumStarters);
-		//System.out.println(java.util.Arrays.toString(ratioSums));
-		
-		//randomly generated ratio in range of probabilities of starters
-		Rational randomRatio = new Rational(rand.nextInt(sumStarters), sumStarters);
-		//System.out.println(randomRatio);
-		
-		Rational ratioSum = starterRatios[0]; //sums ratios of starterRatios
-		for(int i = 0; i < starterRatios.length; i++)
-		{
-			if(!ratioSum.greaterThan(randomRatio))
-			{
-				//System.out.println("currentcoutn at "+(char)('a'+i)+"="+currentCount); 
-				ratioSum.add(starterRatios[i+1]);
-			}
-			else
-			{
-				result =  (char)('a' + i) + "";
-				break;
-			}
-		}
-		
-		return result;
-	}
-	
-	private static String nextChar(char previous) 
+	/**
+	 * Using the relevantRow, selects the next character to be used in the password.
+	 * 
+	 * @param relevantRow row of counts to be considered
+	 * @return the next selected character
+	 */
+	private static String nextChar(int[] relevantRow) 
 	{
 		//relevant row for given previous char
-		int[] row = followers[previous-'a'];
+		//int[] row = followers[previous-'a'];
+		int[] row = relevantRow;
 		
 		String result = "";
 		int sumRow = row[26];
@@ -112,7 +85,6 @@ public class PasswordGenerator
 			rowRatios[i] = new Rational(row[i], sumRow);
 		//System.out.println(java.util.Arrays.toString(ratioSums));
 
-		//TODO breaks if no followers ( a file of one letter words )
 		//randomly generated ratio in range of probabilities of row
 		Rational randomRatio = new Rational(rand.nextInt(sumRow), sumRow);
 		//System.out.println(randomRatio);
@@ -136,16 +108,16 @@ public class PasswordGenerator
 	}
 
 	/**
-	 * @param reference
+	 * Reads in the file named "reference" as input
+	 * 
+	 * @param reference the input file
 	 */
-	private static void read(File reference) {
+	private static void read(File reference) 
+	{
 		try 
 		{
-			//TODO
-			read = new Scanner(reference);//new Scanner("a b c d e f g h i j k l m n o p q r s t u v w x y z ");//
+			read = new Scanner(reference);
 			read.useDelimiter("(\\s|[^a-zA-Z])+");
-			if (false)
-				throw new FileNotFoundException();
 		} 
 		catch (FileNotFoundException e) 
 		{
@@ -155,12 +127,13 @@ public class PasswordGenerator
 		while(read.hasNext())
 		{
 			String next = read.next().toLowerCase();
+			if(next.length() == 1) //skipping one letter words
+				continue;
 			starters[next.charAt(0)-'a']++;
 			starters[26]++;		// 27th column keeps sum of 0 - 26th columns
 			
 			for(int i=0; i<next.length()-1; i++)
 			{
-				//TODO one letter words not to counts?
 				char a = next.charAt(i);
 				char b = next.charAt(i+1);
 				counts[a - 'a']++;
@@ -172,9 +145,10 @@ public class PasswordGenerator
 	}
 
 	/**
-	 * 
+	 * Prints out the followers table.
 	 */
-	private static void printFollowers() {
+	private static void printFollowers() 
+	{
 		System.out.println("\tA\tB\tC\tD\tE\tF\tG\tH\tI\tJ\tK\tL\tM\tN\tO\tP\tQ\tR\tS\tT\tU\tV\tW\tX\tY\tZ");
 		char rowLetter = 'A';
 		for (int[] row : followers)

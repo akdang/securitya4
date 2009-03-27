@@ -1,0 +1,9 @@
+Group Members: 
+- Khoi Dang
+- Chris Cunningham
+
+Compile: javac *.java
+
+Run: java PasswordGenerator [# of characters] [# of passwords] [optional seed #]
+
+
