@@ -39,10 +39,11 @@ public class PasswordGenerator
 			counts = new int[26];
 			results = new String[pwCount];
 			
-			read(reference);
-			printFollowers();
+			read(reference); 	//reading reference file
+			printFollowers();	//printing followers table
 			
-			while(pwCount != 0)
+			int resultCount = 0;
+			while(pwCount != 0)	//generating passwords
 			{
 				pwCount--;
 				int currentPWLength = pwLength;
@@ -54,59 +55,17 @@ public class PasswordGenerator
 					result += nextChar(followers[prevChar-'a']);
 					currentPWLength--;
 				}
-				results[pwCount] = result; 
+				results[resultCount] = result;
+				resultCount++;
 			}
 			
-			System.out.println("Passwords are:");
+			//printing passwords
+			System.out.println("\n"+"Passwords are:");
 			for (String result: results)
 				System.out.println(result);
 		}
 	}
 	
-	/**
-	 * Using the relevantRow, selects the next character to be used in the password.
-	 * 
-	 * @param relevantRow row of counts to be considered
-	 * @return the next selected character
-	 */
-	private static String nextChar(int[] relevantRow) 
-	{
-		//relevant row for given previous char
-		//int[] row = followers[previous-'a'];
-		int[] row = relevantRow;
-		
-		String result = "";
-		int sumRow = row[26];
-		assert sumRow > 0;
-		
-		//building rowRatios - containing ratios of row[i]/sumRow 
-		Rational[] rowRatios = new Rational[26];
-		for(int i = 0; i < rowRatios.length; i++)
-			rowRatios[i] = new Rational(row[i], sumRow);
-		//System.out.println(java.util.Arrays.toString(ratioSums));
-
-		//randomly generated ratio in range of probabilities of row
-		Rational randomRatio = new Rational(rand.nextInt(sumRow), sumRow);
-		//System.out.println(randomRatio);
-		
-		Rational ratioSum = rowRatios[0]; //sums ratios of rowRatios
-		for(int i = 0; i < rowRatios.length; i++)
-		{
-			if(!ratioSum.greaterThan(randomRatio))
-			{
-				//System.out.println("currentcoutn at "+(char)('a'+i)+"="+currentCount); 
-				ratioSum.add(rowRatios[i+1]);
-			}
-			else
-			{
-				result =  (char)('a' + i) + "";
-				break;
-			}
-		}
-		
-		return result;
-	}
-
 	/**
 	 * Reads in the file named "reference" as input
 	 * 
@@ -144,6 +103,7 @@ public class PasswordGenerator
 		}
 	}
 
+	
 	/**
 	 * Prints out the followers table.
 	 */
@@ -159,5 +119,39 @@ public class PasswordGenerator
 			rowLetter++;
 			System.out.println();
 		}
+	}
+	
+	
+	/**
+	 * Using the relevantRow, selects the next character to be used in the password.
+	 * 
+	 * @param relevantRow row of counts to be considered
+	 * @return the next selected character
+	 */
+	private static String nextChar(int[] relevantRow) 
+	{
+		String result = "";
+		int totalRowSum = relevantRow[26];
+		assert totalRowSum > 0;
+		
+		int[] rowSums = new int[26];
+		rowSums[0] = relevantRow[0];
+		for(int i = 1; i<rowSums.length; i++)
+		{
+			rowSums[i] = rowSums[i-1] + relevantRow[i];
+			assert rowSums[i] >= 0 : "Row sums overflow.";
+		}
+
+		int randomPick = rand.nextInt(totalRowSum);
+		for (int i=0; i<rowSums.length; i++)
+		{
+			if(rowSums[i]>randomPick)
+			{
+				result = (char)('a'+i) + "";
+				break;
+			}
+		}
+		assert ! result.equals("") : "nextChar not generated.";
+		return result;
 	}
 }
